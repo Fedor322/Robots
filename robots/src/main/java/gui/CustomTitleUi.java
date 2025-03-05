@@ -14,33 +14,49 @@ public class CustomTitleUi extends BasicInternalFrameTitlePane {
     @Override
     protected void setButtonIcons() {
         if (frame.isIcon()) {
-            if (minIcon != null) {
-                iconButton.setIcon(minIcon);
-            }
-            iconButton.setToolTipText("Свернуть");
-            if (maxIcon != null) {
-                maxButton.setIcon(maxIcon);
-            }
-            maxButton.setToolTipText("Развернуть");
+            setMinimizedIcons();
         } else if (frame.isMaximum()) {
-            if (iconIcon != null) {
-                iconButton.setIcon(iconIcon);
-            }
-            iconButton.setToolTipText("Свернуть");
-            if (minIcon != null) {
-                maxButton.setIcon(minIcon);
-            }
-            maxButton.setToolTipText("Восстановить");
+            setMaximizedIcons();
         } else {
-            if (iconIcon != null) {
-                iconButton.setIcon(iconIcon);
-            }
-            iconButton.setToolTipText("Свернуть");
-            if (maxIcon != null) {
-                maxButton.setIcon(maxIcon);
-            }
-            maxButton.setToolTipText("Развернуть");
+            setNormalIcons();
         }
+        setCloseButtonIcon();
+    }
+
+    private void setMinimizedIcons() {
+        if (minIcon != null) {
+            iconButton.setIcon(minIcon);
+        }
+        iconButton.setToolTipText("Свернуть");
+        if (maxIcon != null) {
+            maxButton.setIcon(maxIcon);
+        }
+        maxButton.setToolTipText("Развернуть");
+    }
+
+    private void setMaximizedIcons() {
+        if (iconIcon != null) {
+            iconButton.setIcon(iconIcon);
+        }
+        iconButton.setToolTipText("Свернуть");
+        if (minIcon != null) {
+            maxButton.setIcon(minIcon);
+        }
+        maxButton.setToolTipText("Восстановить");
+    }
+
+    private void setNormalIcons() {
+        if (iconIcon != null) {
+            iconButton.setIcon(iconIcon);
+        }
+        iconButton.setToolTipText("Свернуть");
+        if (maxIcon != null) {
+            maxButton.setIcon(maxIcon);
+        }
+        maxButton.setToolTipText("Развернуть");
+    }
+
+    private void setCloseButtonIcon() {
         if (closeIcon != null) {
             closeButton.setIcon(closeIcon);
         }
@@ -67,8 +83,6 @@ public class CustomTitleUi extends BasicInternalFrameTitlePane {
         add(menuPanel, BorderLayout.WEST);
         add(buttonPanel, BorderLayout.EAST);
     }
-
-
 
 
     @Override

@@ -76,7 +76,7 @@ public class MainApplicationFrame extends JFrame {
                 JOptionPane.QUESTION_MESSAGE
         );
         if (resultExit == JOptionPane.YES_OPTION) {
-            System.exit(JOptionPane.YES_OPTION);
+            System.exit(0);
         }
     }
 
