@@ -18,7 +18,8 @@ public class RobotsProgram {
         }
         SwingUtilities.invokeLater(() -> {
             MainApplicationFrame frame = new MainApplicationFrame();
-            frame.pack();
+            ConfigurationWindow configurationWindow = new ConfigurationWindow();
+            configurationWindow.getConfiguration(frame,ConfigWindowType.MAIN_FRAME_CONFIG);
             frame.setVisible(true);
         });
 

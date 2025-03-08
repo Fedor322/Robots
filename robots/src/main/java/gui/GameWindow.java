@@ -1,8 +1,11 @@
 package gui;
 
+import gui.customui.CustomInternalFrameUi;
+
+import javax.swing.JInternalFrame;
+import javax.swing.JPanel;
 import java.awt.BorderLayout;
 
-import javax.swing.*;
 
 public class GameWindow extends JInternalFrame {
     private final GameVisualizer m_visualizer;

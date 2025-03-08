@@ -5,7 +5,7 @@ import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
 
 import javax.swing.*;
-import javax.swing.plaf.DesktopPaneUI;
+
 
 import log.Logger;
 
@@ -17,6 +17,7 @@ import log.Logger;
 public class MainApplicationFrame extends JFrame {
     private final JDesktopPane desktopPane = new JDesktopPane();
 
+
     public MainApplicationFrame() {
         int inset = 50;
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -25,10 +26,15 @@ public class MainApplicationFrame extends JFrame {
                 screenSize.height - inset * 2);
         desktopPane.setUI(null);
         setContentPane(desktopPane);
-
         addWindow(createLogWindow());
         addWindow(createGameWindow());
         setJMenuBar(generateMenuBar());
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent e) {
+                saveAllWindows();
+            }
+        });
     }
 
     protected LogWindow createLogWindow() {
@@ -37,6 +43,7 @@ public class MainApplicationFrame extends JFrame {
         logWindow.setSize(300, 800);
         setMinimumSize(logWindow.getSize());
         logWindow.pack();
+        new ConfigurationWindow().getConfiguration(logWindow, ConfigWindowType.LOG_INTERNAL_CONFIG);
         Logger.debug("Протокол работает");
         return logWindow;
     }
@@ -44,6 +51,7 @@ public class MainApplicationFrame extends JFrame {
     protected GameWindow createGameWindow() {
         GameWindow gameWindow = new GameWindow();
         gameWindow.setSize(400, 400);
+        new ConfigurationWindow().getConfiguration(gameWindow, ConfigWindowType.GAME_INTERNAL_CONFIG);
         return gameWindow;
     }
 
@@ -76,7 +84,21 @@ public class MainApplicationFrame extends JFrame {
                 JOptionPane.QUESTION_MESSAGE
         );
         if (resultExit == JOptionPane.YES_OPTION) {
+            saveAllWindows();
             System.exit(0);
+        }
+    }
+
+    public void saveAllWindows() {
+        ConfigurationWindow configurationWindow = new ConfigurationWindow();
+        configurationWindow.saveConfiguration(this, ConfigWindowType.MAIN_FRAME_CONFIG);
+        JInternalFrame[] frames = desktopPane.getAllFrames();
+        for (JInternalFrame frame : frames) {
+            if (frame instanceof GameWindow) {
+                configurationWindow.saveConfiguration(frame, ConfigWindowType.GAME_INTERNAL_CONFIG);
+            } else if (frame instanceof LogWindow) {
+                configurationWindow.saveConfiguration(frame, ConfigWindowType.LOG_INTERNAL_CONFIG);
+            }
         }
     }
 
