@@ -37,7 +37,6 @@ public class ConfigurationWindow {
         try (ObjectOutputStream outputStream = new ObjectOutputStream(new FileOutputStream(nameWindow.getFileName()))) {
             outputStream.writeObject(state);
         } catch (IOException e) {
-            e.printStackTrace();
             System.out.println("Не удалось сохранить");
         }
     }
@@ -52,7 +51,7 @@ public class ConfigurationWindow {
             if (frameComponent instanceof JInternalFrame internal) {
                 try {
                     internal.setMaximum(state.isMaximized());
-                    internal.setIcon(state.isIconified());
+                    internal.setIcon(state.isIconifized());
                 } catch (PropertyVetoException e) {
                     e.printStackTrace();
                 }

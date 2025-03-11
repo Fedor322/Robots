@@ -5,14 +5,14 @@ import javax.swing.plaf.basic.BasicInternalFrameUI;
 
 public class CustomInternalFrameUi extends BasicInternalFrameUI {
 
-    public CustomInternalFrameUi(JInternalFrame b) {
-        super(b);
+    public CustomInternalFrameUi(JInternalFrame frame) {
+        super(frame);
     }
 
 
     @Override
-    protected JComponent createNorthPane(JInternalFrame w) {
-        return new CustomTitleUi(w);
+    protected JComponent createNorthPane(JInternalFrame frame) {
+        return new CustomTitleUi(frame);
     }
 
 
