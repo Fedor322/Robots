@@ -1,5 +1,6 @@
 package gui;
 
+import gui.configuration.StorableWindow;
 import gui.customui.CustomInternalFrameUi;
 
 import javax.swing.JInternalFrame;

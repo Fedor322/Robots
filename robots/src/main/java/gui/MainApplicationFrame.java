@@ -7,6 +7,8 @@ import java.awt.event.KeyEvent;
 import javax.swing.*;
 
 
+import gui.configuration.StorableWindow;
+import gui.configuration.WindowsConfigurationManager;
 import log.Logger;
 
 /**

@@ -1,5 +1,6 @@
-package gui;
+package gui.configuration;
 
+import gui.MainApplicationFrame;
 import log.Logger;
 
 import javax.swing.*;
@@ -49,7 +50,7 @@ public class WindowsConfigurationManager {
                 properties.load(fis);
                 System.out.println("Loaded properties from " + CONFIG_PATH);
             } catch (IOException e) {
-                Logger.debug(e.getMessage());
+                Logger.error(e.getMessage());
             }
         } else {
             System.out.println("Config file not found: " + CONFIG_PATH);
