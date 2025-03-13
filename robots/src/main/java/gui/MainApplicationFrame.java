@@ -14,9 +14,13 @@ import log.Logger;
  * 1. Метод создания меню перегружен функционалом и трудно читается.
  * Следует разделить его на серию более простых методов (или вообще выделить отдельный класс).
  */
-public class MainApplicationFrame extends JFrame {
+public class MainApplicationFrame extends JFrame implements StorableWindow {
     private final JDesktopPane desktopPane = new JDesktopPane();
+    private final WindowsConfigurationManager windowsConfigurationManager = new WindowsConfigurationManager();
 
+    public JDesktopPane getDesktopPane() {
+        return desktopPane;
+    }
 
     public MainApplicationFrame() {
         int inset = 50;
@@ -26,16 +30,28 @@ public class MainApplicationFrame extends JFrame {
                 screenSize.height - inset * 2);
         desktopPane.setUI(null);
         setContentPane(desktopPane);
+
+        windowsConfigurationManager.loadConfiguration();
+
         addWindow(createLogWindow());
         addWindow(createGameWindow());
+
         setJMenuBar(generateMenuBar());
+        windowsConfigurationManager.getAllConfigurationFrameComponent();
+
         addWindowListener(new java.awt.event.WindowAdapter() {
             @Override
             public void windowClosing(java.awt.event.WindowEvent e) {
-                saveAllWindows();
+                exitFromApplication();
             }
         });
     }
+
+    @Override
+    public String getId() {
+        return "MainFrame";
+    }
+
 
     protected LogWindow createLogWindow() {
         LogWindow logWindow = new LogWindow(Logger.getDefaultLogSource());
@@ -43,7 +59,6 @@ public class MainApplicationFrame extends JFrame {
         logWindow.setSize(300, 800);
         setMinimumSize(logWindow.getSize());
         logWindow.pack();
-        new ConfigurationWindow().getConfiguration(logWindow, ConfigWindowType.LOG_INTERNAL_CONFIG);
         Logger.debug("Протокол работает");
         return logWindow;
     }
@@ -51,7 +66,6 @@ public class MainApplicationFrame extends JFrame {
     protected GameWindow createGameWindow() {
         GameWindow gameWindow = new GameWindow();
         gameWindow.setSize(400, 400);
-        new ConfigurationWindow().getConfiguration(gameWindow, ConfigWindowType.GAME_INTERNAL_CONFIG);
         return gameWindow;
     }
 
@@ -84,21 +98,8 @@ public class MainApplicationFrame extends JFrame {
                 JOptionPane.QUESTION_MESSAGE
         );
         if (resultExit == JOptionPane.YES_OPTION) {
-            saveAllWindows();
+            windowsConfigurationManager.saveConfiguration();
             System.exit(0);
-        }
-    }
-
-    public void saveAllWindows() {
-        ConfigurationWindow configurationWindow = new ConfigurationWindow();
-        configurationWindow.saveConfiguration(this, ConfigWindowType.MAIN_FRAME_CONFIG);
-        JInternalFrame[] frames = desktopPane.getAllFrames();
-        for (JInternalFrame frame : frames) {
-            if (frame instanceof GameWindow) {
-                configurationWindow.saveConfiguration(frame, ConfigWindowType.GAME_INTERNAL_CONFIG);
-            } else if (frame instanceof LogWindow) {
-                configurationWindow.saveConfiguration(frame, ConfigWindowType.LOG_INTERNAL_CONFIG);
-            }
         }
     }
 

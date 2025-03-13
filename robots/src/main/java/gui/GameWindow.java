@@ -7,7 +7,7 @@ import javax.swing.JPanel;
 import java.awt.BorderLayout;
 
 
-public class GameWindow extends JInternalFrame {
+public class GameWindow extends JInternalFrame implements StorableWindow {
     private final GameVisualizer m_visualizer;
 
     public GameWindow() {
@@ -19,6 +19,12 @@ public class GameWindow extends JInternalFrame {
         getContentPane().add(panel);
         pack();
     }
+
+    @Override
+    public String getId() {
+        return "GameWindow";
+    }
+
 
 
 }

@@ -11,7 +11,7 @@ import log.LogChangeListener;
 import log.LogEntry;
 import log.LogWindowSource;
 
-public class LogWindow extends JInternalFrame implements LogChangeListener {
+public class LogWindow extends JInternalFrame implements LogChangeListener,StorableWindow {
     private LogWindowSource m_logSource;
     private TextArea m_logContent;
 
@@ -27,6 +27,10 @@ public class LogWindow extends JInternalFrame implements LogChangeListener {
         setUI(new CustomInternalFrameUi(this));
         pack();
         updateLogContent();
+    }
+    @Override
+    public String getId() {
+        return "LogWindow";
     }
 
     private void updateLogContent() {
