@@ -39,7 +39,7 @@ public class MainApplicationFrame extends JFrame implements StorableWindow {
         addWindow(createGameWindow());
 
         setJMenuBar(generateMenuBar());
-        windowsConfigurationManager.getAllConfigurationFrameComponent();
+        windowsConfigurationManager.loadAllConfigurationFrameComponent();
 
         addWindowListener(new java.awt.event.WindowAdapter() {
             @Override

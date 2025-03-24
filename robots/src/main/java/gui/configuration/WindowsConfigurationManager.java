@@ -1,128 +1,144 @@
 package gui.configuration;
 
-import gui.MainApplicationFrame;
 import log.Logger;
 
 import javax.swing.*;
 import java.awt.*;
 import java.beans.PropertyVetoException;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.lang.reflect.Method;
+import java.util.Objects;
 import java.util.Properties;
 
 public class WindowsConfigurationManager {
 
     private static final String CONFIG_PATH = System.getProperty("user.home")
-            + File.separator + "config.cfg";
+            + File.separator + "config.properties";
 
     private final Properties properties = new Properties();
-
+    private final WindowPropertiesManager windowPropertiesManager = new WindowPropertiesManager(new Properties());
 
     public void saveConfiguration() {
         for (Frame frame : Frame.getFrames()) {
-            if (frame.isShowing() && frame instanceof StorableWindow storableWindow) {
-                saveConfigurationFrameComponent(frame, storableWindow.getId());
-            }
-            if (frame instanceof MainApplicationFrame mainApplicationFrame) {
-                JDesktopPane jDesktopPane = mainApplicationFrame.getDesktopPane();
-                for (JInternalFrame internalFrame : jDesktopPane.getAllFrames()) {
-                    if (internalFrame.isShowing() && internalFrame instanceof StorableWindow internalStorable) {
-                        saveConfigurationFrameComponent(internalFrame, internalStorable.getId());
+            if (frame.isShowing()) {
+                saveStorableWindow(frame);
+                JDesktopPane jDesktopPane = getDesktopPane(frame);
+                for (JInternalFrame internalFrame : Objects.requireNonNull(jDesktopPane).getAllFrames()) {
+                    if (internalFrame.isShowing()) {
+                        saveStorableWindow(internalFrame);
                     }
                 }
 
             }
-
         }
-        try (FileOutputStream fileOutputStream = new FileOutputStream(CONFIG_PATH)) {
-            properties.store(fileOutputStream, "Window states");
-        } catch (IOException e) {
-            System.out.println(e.getMessage());
-        }
+        windowPropertiesManager.save(CONFIG_PATH);
     }
 
     public void loadConfiguration() {
-        File file = new File(CONFIG_PATH);
-        if (file.exists()) {
-            try (FileInputStream fis = new FileInputStream(file)) {
-                properties.load(fis);
-                System.out.println("Loaded properties from " + CONFIG_PATH);
-            } catch (IOException e) {
+        windowPropertiesManager.load(CONFIG_PATH);
+    }
+
+    private void saveStorableWindow(Component frameComponent) {
+        if (implementsInterface(frameComponent.getClass(), "StorableWindow")) {
+            try {
+                Method getIdMethod = frameComponent.getClass().getMethod("getId");
+                String id = (String) getIdMethod.invoke(frameComponent);
+                saveConfigurationFrameComponent(frameComponent, id);
+            } catch (Exception e) {
                 Logger.error(e.getMessage());
             }
-        } else {
-            System.out.println("Config file not found: " + CONFIG_PATH);
         }
     }
+
+    private void loadStorableWindow(Component frameComponent) {
+        if (implementsInterface(frameComponent.getClass(), "StorableWindow")) {
+            try {
+                Method getIdMethod = frameComponent.getClass().getMethod("getId");
+                String id = (String) getIdMethod.invoke(frameComponent);
+                loadConfigurationFrameComponent(frameComponent, id);
+            } catch (Exception e) {
+                Logger.error(e.getMessage());
+            }
+        }
+    }
+
+    private boolean implementsInterface(Class<?> clas, String interfaceName) {
+        for (Class<?> currInterface : clas.getInterfaces()) {
+            if (currInterface.getSimpleName().equals(interfaceName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private JDesktopPane getDesktopPane(Component frameComponent) {
+        try {
+            Method getMethod = frameComponent.getClass().getMethod("getDesktopPane");
+            return (JDesktopPane) getMethod.invoke(frameComponent);
+        } catch (Exception e) {
+            Logger.error(e.getMessage());
+            return null;
+        }
+    }
+
 
     public void saveConfigurationFrameComponent(Component frameComponent, String id) {
-        properties.setProperty(id + ".x", String.valueOf(frameComponent.getX()));
-        properties.setProperty(id + ".y", String.valueOf(frameComponent.getY()));
-        properties.setProperty(id + ".width", String.valueOf(frameComponent.getWidth()));
-        properties.setProperty(id + ".height", String.valueOf(frameComponent.getHeight()));
+        int extendedState = 0;
+        boolean maximized = false;
+        boolean minimized = false;
         if (frameComponent instanceof JFrame jFrame) {
-            properties.setProperty(id + ".extendedState", String.valueOf(jFrame.getExtendedState()));
+            extendedState = jFrame.getExtendedState();
         }
         if (frameComponent instanceof JInternalFrame jInternalFrame) {
-            properties.setProperty(id + ".max", String.valueOf(jInternalFrame.isMaximum()));
-            properties.setProperty(id + ".icon", String.valueOf(jInternalFrame.isIcon()));
+            maximized = jInternalFrame.isMaximum();
+            minimized = jInternalFrame.isIcon();
         }
+        WindowState state = new WindowState(
+                frameComponent.getX(),
+                frameComponent.getY(),
+                frameComponent.getWidth(),
+                frameComponent.getHeight(),
+                extendedState, maximized,
+                minimized);
+        windowPropertiesManager.saveWindowState(id, state);
     }
 
 
-    public void getAllConfigurationFrameComponent() {
+    public void loadAllConfigurationFrameComponent() {
         for (Frame frame : Frame.getFrames()) {
-            if (frame instanceof StorableWindow storableWindow) {
-                getConfigurationFrameComponent(frame, storableWindow.getId());
-            }
-            if (frame instanceof MainApplicationFrame mainApplicationFrame) {
-                JDesktopPane jDesktopPane = mainApplicationFrame.getDesktopPane();
-                for (JInternalFrame internalFrame : jDesktopPane.getAllFrames()) {
-                    if (internalFrame instanceof StorableWindow internalStorable) {
-                        getConfigurationFrameComponent(internalFrame, internalStorable.getId());
-                    }
+            loadStorableWindow(frame);
+            JDesktopPane jDesktopPane = getDesktopPane(frame);
+            for (JInternalFrame internalFrame : jDesktopPane.getAllFrames()) {
+                if (internalFrame instanceof StorableWindow internalStorable) {
+                    loadConfigurationFrameComponent(internalFrame, internalStorable.getId());
                 }
             }
         }
-
     }
 
-    public void getConfigurationFrameComponent(Component frameComponent, String id) {
-
-        String x = properties.getProperty(id + ".x");
-        String y = properties.getProperty(id + ".y");
-        String width = properties.getProperty(id + ".width");
-        String height = properties.getProperty(id + ".height");
-        if (x != null && y != null && width != null && height != null) {
-            frameComponent.setBounds(
-                    Integer.parseInt(x),
-                    Integer.parseInt(y),
-                    Integer.parseInt(width),
-                    Integer.parseInt(height));
+    public void loadConfigurationFrameComponent(Component frameComponent, String id) {
+        WindowState windowState = windowPropertiesManager.loadWindowState(id);
+        if (windowState == null) {
+            Logger.error("Не удалось загрузить состояние для " + id);
+            return;
         }
+        frameComponent.setBounds(
+                windowState.x(),
+                windowState.y(),
+                windowState.width(),
+                windowState.height()
+        );
         if (frameComponent instanceof JFrame jFrame) {
-            String extendedState = properties.getProperty(id + ".extendedState");
-            if (extendedState != null) {
-                jFrame.setExtendedState(Integer.parseInt(extendedState));
-            }
+            jFrame.setExtendedState(windowState.extendedState());
         }
 
         if (frameComponent instanceof JInternalFrame internalFrame) {
-            String maxState = properties.getProperty(id + ".max");
-            String iconState = properties.getProperty(id + ".icon");
             try {
-                if (maxState != null) {
-                    internalFrame.setMaximum(Boolean.parseBoolean(maxState));
-                }
-                if (iconState != null) {
-                    internalFrame.setIcon(Boolean.parseBoolean(iconState));
-                }
+                internalFrame.setMaximum(windowState.maximized());
+                internalFrame.setIcon(windowState.minimized());
             } catch (PropertyVetoException e) {
-                e.printStackTrace();
+                Logger.error(e.getMessage());
             }
-
         }
 
 
