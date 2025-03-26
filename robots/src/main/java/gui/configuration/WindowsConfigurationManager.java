@@ -14,8 +14,8 @@ public class WindowsConfigurationManager {
 
     private static final String CONFIG_PATH = System.getProperty("user.home")
             + File.separator + "config.properties";
+    private static final String LOCAL_CONFIG_PATH = "config.properties";
 
-    private final Properties properties = new Properties();
     private final WindowPropertiesManager windowPropertiesManager = new WindowPropertiesManager(new Properties());
 
     public void saveConfiguration() {
@@ -32,6 +32,7 @@ public class WindowsConfigurationManager {
             }
         }
         windowPropertiesManager.save(CONFIG_PATH);
+        windowPropertiesManager.save(LOCAL_CONFIG_PATH);
     }
 
     public void loadConfiguration() {
