@@ -12,9 +12,10 @@ import java.util.Properties;
 
 public class WindowsConfigurationManager {
 
-    private static final String CONFIG_PATH = System.getProperty("user.home")
-            + File.separator + "config.properties";
+
     private static final String LOCAL_CONFIG_PATH = "config.properties";
+    private static final String CONFIG_PATH = System.getProperty("user.home")
+            + File.separator + LOCAL_CONFIG_PATH;
 
     private final WindowPropertiesManager windowPropertiesManager = new WindowPropertiesManager(new Properties());
 
@@ -95,11 +96,13 @@ public class WindowsConfigurationManager {
             minimized = jInternalFrame.isIcon();
         }
         WindowState state = new WindowState(
+                id,
                 frameComponent.getX(),
                 frameComponent.getY(),
                 frameComponent.getWidth(),
                 frameComponent.getHeight(),
-                extendedState, maximized,
+                extendedState,
+                maximized,
                 minimized);
         windowPropertiesManager.saveWindowState(id, state);
     }
@@ -119,10 +122,6 @@ public class WindowsConfigurationManager {
 
     public void loadConfigurationFrameComponent(Component frameComponent, String id) {
         WindowState windowState = windowPropertiesManager.loadWindowState(id);
-        if (windowState == null) {
-            Logger.error("Не удалось загрузить состояние для " + id);
-            return;
-        }
         frameComponent.setBounds(
                 windowState.x(),
                 windowState.y(),
@@ -141,8 +140,5 @@ public class WindowsConfigurationManager {
                 Logger.error(e.getMessage());
             }
         }
-
-
     }
-
 }

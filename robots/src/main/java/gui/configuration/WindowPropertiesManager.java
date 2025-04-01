@@ -40,38 +40,17 @@ public class WindowPropertiesManager {
     }
 
 
-    public void saveWindowState(String id, WindowState state) {
-        properties.setProperty(id + ".x", String.valueOf(state.x()));
-        properties.setProperty(id + ".y", String.valueOf(state.y()));
-        properties.setProperty(id + ".width", String.valueOf(state.width()));
-        properties.setProperty(id + ".height", String.valueOf(state.height()));
-        properties.setProperty(id + ".extendedState", String.valueOf(state.extendedState()));
-        properties.setProperty(id + ".maximized", String.valueOf(state.maximized()));
-        properties.setProperty(id + ".minimized", String.valueOf(state.minimized()));
+    public void saveWindowState(String id, WindowState state) {state.saveX(properties);
+        state.saveY(properties);
+        state.saveWidth(properties);
+        state.saveHeight(properties);
+        state.saveExtendedState(properties);
+        state.saveMaximized(properties);
+        state.saveMinimized(properties);
     }
 
+
     public WindowState loadWindowState(String id) {
-        String xStr = properties.getProperty(id + ".x");
-        String yStr = properties.getProperty(id + ".y");
-        String widthStr = properties.getProperty(id + ".width");
-        String heightStr = properties.getProperty(id + ".height");
-        String extStr = properties.getProperty(id + ".extendedState");
-        String maxStr = properties.getProperty(id + ".maximized");
-        String minStr = properties.getProperty(id + ".minimized");
-        if (xStr != null && yStr != null && widthStr != null && heightStr != null) {
-            int extendedState = extStr != null ? Integer.parseInt(extStr) : 0;
-            boolean maximized = Boolean.parseBoolean(maxStr);
-            boolean minimized = Boolean.parseBoolean(minStr);
-            return new WindowState(
-                    Integer.parseInt(xStr),
-                    Integer.parseInt(yStr),
-                    Integer.parseInt(widthStr),
-                    Integer.parseInt(heightStr),
-                    extendedState,
-                    maximized,
-                    minimized
-            );
-        }
-        return null;
+        return new WindowState(id, properties);
     }
 }
