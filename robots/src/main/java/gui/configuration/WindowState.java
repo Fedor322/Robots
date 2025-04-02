@@ -2,73 +2,84 @@ package gui.configuration;
 
 import java.util.Properties;
 
-public record WindowState(
-        String id,
-        int x,
-        int y,
-        int width,
-        int height,
-        int extendedState,
-        boolean maximized,
-        boolean minimized
-) {
+public class WindowState {
+    private final Properties properties;
+    private final String id;
+
+    private int x;
+    private int y;
+    private int width;
+    private int height;
+    private int extendedState;
+    private boolean maximized;
+    private boolean minimized;
+
+    public WindowState(String id, int x, int y, int width, int height, int extendedState, boolean maximized, boolean minimized, Properties properties) {
+        this.id = id;
+        this.properties = properties;
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+        this.extendedState = extendedState;
+        this.maximized = maximized;
+        this.minimized = minimized;
+    }
+
     public WindowState(String id, Properties properties) {
-        this(
-                id,
-                loadInt(id + ".x", "0", properties),
-                loadInt(id + ".y", "0", properties),
-                loadInt(id + ".width", "800", properties),
-                loadInt(id + ".height", "0", properties),
-                loadInt(id + ".extendedState", "0", properties),
-                loadMaximized(id, properties),
-                loadMinimized(id, properties));
+        this.id = id;
+        this.properties = properties;
+        this.x = loadInt("x", 0);
+        this.y = loadInt("y", 0);
+        this.width = loadInt("width", 800);
+        this.height = loadInt("height", 600);
+        this.extendedState = loadInt("extendedState", 0);
+        this.maximized = loadBoolean("maximized");
+        this.minimized = loadBoolean("minimized");
     }
 
-    private static int loadInt(String key, String defaultValue, Properties properties) {
-        return Integer.parseInt(properties.getProperty(key, defaultValue));
+    private int loadInt(String key, int defaultValue) {
+        return Integer.parseInt(properties.getProperty(id + "." + key, String.valueOf(defaultValue)));
     }
 
-    private static boolean loadBoolean(String key, Properties properties) {
-        return Boolean.parseBoolean(properties.getProperty(key, "false"));
+    private boolean loadBoolean(String key) {
+        return Boolean.parseBoolean(properties.getProperty(id + "." + key, "false"));
     }
 
-    private static boolean loadMaximized(String id, Properties properties) {
-        return loadBoolean(id + ".maximized", properties);
-    }
-
-    private static boolean loadMinimized(String id, Properties properties) {
-        return loadBoolean(id + ".minimized", properties);
-    }
-
-    private void saveProperty(String key, String value, Properties properties) {
+    private void updateProperty(String key, String value) {
         properties.setProperty(id + "." + key, value);
     }
-    public void saveX(Properties properties) {
-        saveProperty("x", String.valueOf(x), properties);
+
+    public void updateAllProperties() {
+        updateProperty("x", String.valueOf(x));
+        updateProperty("y", String.valueOf(y));
+        updateProperty("width", String.valueOf(width));
+        updateProperty("height", String.valueOf(height));
+        updateProperty("extendedState", String.valueOf(extendedState));
+        updateProperty("maximized", String.valueOf(maximized));
+        updateProperty("minimized", String.valueOf(minimized));
     }
 
-    public void saveY(Properties properties) {
-        saveProperty("y", String.valueOf(y), properties);
-    }
+    public int getX() { return x; }
+    public void setX(int x) { this.x = x; updateProperty("x", String.valueOf(x)); }
 
-    public void saveWidth(Properties properties) {
-        saveProperty("width", String.valueOf(width), properties);
-    }
+    public int getY() { return y; }
+    public void setY(int y) { this.y = y; updateProperty("y", String.valueOf(y)); }
 
-    public void saveHeight(Properties properties) {
-        saveProperty("height", String.valueOf(height), properties);
-    }
+    public int getWidth() { return width; }
+    public void setWidth(int width) { this.width = width; updateProperty("width", String.valueOf(width)); }
 
-    public void saveExtendedState(Properties properties) {
-        saveProperty("extendedState", String.valueOf(extendedState), properties);
-    }
+    public int getHeight() { return height; }
+    public void setHeight(int height) { this.height = height; updateProperty("height", String.valueOf(height)); }
 
-    public void saveMaximized(Properties properties) {
-        saveProperty("maximized", String.valueOf(maximized), properties);
-    }
+    public int getExtendedState() { return extendedState; }
+    public void setExtendedState(int extendedState) { this.extendedState = extendedState; updateProperty("extendedState", String.valueOf(extendedState)); }
 
-    public void saveMinimized(Properties properties) {
-        saveProperty("minimized", String.valueOf(minimized), properties);
-    }
+    public boolean isMaximized() { return maximized; }
+    public void setMaximized(boolean maximized) { this.maximized = maximized; updateProperty("maximized", String.valueOf(maximized)); }
+
+    public boolean isMinimized() { return minimized; }
+    public void setMinimized(boolean minimized) { this.minimized = minimized; updateProperty("minimized", String.valueOf(minimized)); }
+
+    public String getId() { return id; }
 }
-

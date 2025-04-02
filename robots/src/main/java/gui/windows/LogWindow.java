@@ -1,4 +1,4 @@
-package gui;
+package gui.windows;
 
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
@@ -7,12 +7,13 @@ import javax.swing.JInternalFrame;
 import javax.swing.JPanel;
 
 import gui.configuration.StorableWindow;
+import gui.configuration.WindowsRegistry;
 import gui.customui.CustomInternalFrameUi;
 import log.LogChangeListener;
 import log.LogEntry;
 import log.LogWindowSource;
 
-public class LogWindow extends JInternalFrame implements LogChangeListener, StorableWindow {
+public class LogWindow extends JInternalFrame implements  StorableWindow,LogChangeListener {
     private LogWindowSource m_logSource;
     private TextArea m_logContent;
 
@@ -28,6 +29,7 @@ public class LogWindow extends JInternalFrame implements LogChangeListener, Stor
         setUI(new CustomInternalFrameUi(this));
         pack();
         updateLogContent();
+        WindowsRegistry.register(this);
     }
     @Override
     public String getId() {

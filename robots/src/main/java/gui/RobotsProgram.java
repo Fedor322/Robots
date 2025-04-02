@@ -1,5 +1,7 @@
 package gui;
 
+import gui.windows.MainApplicationFrame;
+
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
@@ -18,8 +20,7 @@ public class RobotsProgram {
         }
         SwingUtilities.invokeLater(() -> {
             MainApplicationFrame frame = new MainApplicationFrame();
-//            ConfigurationWindow configurationWindow = new ConfigurationWindow();
-//            configurationWindow.saveConfigurationFrameComponent(frame, ConfigWindowType.MAIN_FRAME_CONFIG);
+            frame.getWindowsConfigurationManager().loadAllConfigurationFrameComponent();
             frame.setVisible(true);
         });
 

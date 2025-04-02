@@ -1,4 +1,4 @@
-package gui;
+package gui.windows;
 
 import java.awt.Dimension;
 import java.awt.Toolkit;
@@ -8,7 +8,9 @@ import javax.swing.*;
 
 
 import gui.configuration.StorableWindow;
+import gui.configuration.WindowPropertiesManager;
 import gui.configuration.WindowsConfigurationManager;
+import gui.configuration.WindowsRegistry;
 import log.Logger;
 
 /**
@@ -23,6 +25,7 @@ public class MainApplicationFrame extends JFrame implements StorableWindow {
     public JDesktopPane getDesktopPane() {
         return desktopPane;
     }
+    public WindowsConfigurationManager getWindowsConfigurationManager() {return windowsConfigurationManager;}
 
     public MainApplicationFrame() {
         int inset = 50;
@@ -39,21 +42,19 @@ public class MainApplicationFrame extends JFrame implements StorableWindow {
         addWindow(createGameWindow());
 
         setJMenuBar(generateMenuBar());
-        windowsConfigurationManager.loadAllConfigurationFrameComponent();
-
         addWindowListener(new java.awt.event.WindowAdapter() {
             @Override
             public void windowClosing(java.awt.event.WindowEvent e) {
                 exitFromApplication();
             }
         });
+        WindowsRegistry.register(this);
     }
 
     @Override
     public String getId() {
-        return "MainFrame";
+        return "MainApplicationFrame";
     }
-
 
     protected LogWindow createLogWindow() {
         LogWindow logWindow = new LogWindow(Logger.getDefaultLogSource());

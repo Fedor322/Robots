@@ -1,6 +1,10 @@
-package gui;
+package gui.windows;
 
+import gui.GameVisualizer;
 import gui.configuration.StorableWindow;
+import gui.configuration.WindowPropertiesManager;
+import gui.configuration.WindowState;
+import gui.configuration.WindowsRegistry;
 import gui.customui.CustomInternalFrameUi;
 
 import javax.swing.JInternalFrame;
@@ -10,7 +14,6 @@ import java.awt.BorderLayout;
 
 public class GameWindow extends JInternalFrame implements StorableWindow {
     private final GameVisualizer m_visualizer;
-
     public GameWindow() {
         super("Поле", true, true, true, true);
         m_visualizer = new GameVisualizer();
@@ -19,13 +22,11 @@ public class GameWindow extends JInternalFrame implements StorableWindow {
         panel.add(m_visualizer, BorderLayout.CENTER);
         getContentPane().add(panel);
         pack();
+        WindowsRegistry.register(this);
     }
 
     @Override
     public String getId() {
         return "GameWindow";
     }
-
-
-
 }

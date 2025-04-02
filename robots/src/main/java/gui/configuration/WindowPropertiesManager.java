@@ -8,12 +8,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Properties;
 
-public class WindowPropertiesManager {
-    private final Properties properties;
-
-    public WindowPropertiesManager(Properties properties) {
-        this.properties = properties;
-    }
+public record WindowPropertiesManager(Properties properties) {
 
     public void load(String configPath) {
         File file = new File(configPath);
@@ -40,13 +35,8 @@ public class WindowPropertiesManager {
     }
 
 
-    public void saveWindowState(String id, WindowState state) {state.saveX(properties);
-        state.saveY(properties);
-        state.saveWidth(properties);
-        state.saveHeight(properties);
-        state.saveExtendedState(properties);
-        state.saveMaximized(properties);
-        state.saveMinimized(properties);
+    public void saveWindowState(String id, WindowState state) {
+        state.updateAllProperties();
     }
 
 
