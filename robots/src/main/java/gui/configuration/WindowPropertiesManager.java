@@ -6,9 +6,15 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Objects;
 import java.util.Properties;
 
-public record WindowPropertiesManager(Properties properties) {
+public final class WindowPropertiesManager {
+    private final Properties properties;
+
+    public WindowPropertiesManager(Properties properties) {
+        this.properties = properties;
+    }
 
     public void load(String configPath) {
         File file = new File(configPath);
@@ -43,4 +49,28 @@ public record WindowPropertiesManager(Properties properties) {
     public WindowState loadWindowState(String id) {
         return new WindowState(id, properties);
     }
+
+    public Properties properties() {
+        return properties;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) return true;
+        if (obj == null || obj.getClass() != this.getClass()) return false;
+        var that = (WindowPropertiesManager) obj;
+        return Objects.equals(this.properties, that.properties);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(properties);
+    }
+
+    @Override
+    public String toString() {
+        return "WindowPropertiesManager[" +
+                "properties=" + properties + ']';
+    }
+
 }

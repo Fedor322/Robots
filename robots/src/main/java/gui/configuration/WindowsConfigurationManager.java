@@ -1,14 +1,11 @@
 package gui.configuration;
 
 import log.Logger;
-import org.reflections.Reflections;
-
 import javax.swing.*;
 import java.awt.*;
 import java.beans.PropertyVetoException;
 import java.io.File;
 import java.util.Properties;
-import java.util.Set;
 
 public class WindowsConfigurationManager {
 
