@@ -1,4 +1,4 @@
-package gui;
+package gui.customui;
 
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicInternalFrameTitlePane;
@@ -7,8 +7,8 @@ import java.awt.event.ActionListener;
 
 public class CustomTitleUi extends BasicInternalFrameTitlePane {
 
-    CustomTitleUi(JInternalFrame f) {
-        super(f);
+    CustomTitleUi(JInternalFrame frame) {
+        super(frame);
     }
 
     @Override

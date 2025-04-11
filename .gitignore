@@ -1,6 +1,4 @@
-/.metadata
-/robots/.settings
-/robots/bin
-eclipse.bat
+/bin/
+/.settings/
 /.idea
 /out/

@@ -1,12 +1,16 @@
-package gui;
+package gui.windows;
 
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
 
 import javax.swing.*;
-import javax.swing.plaf.DesktopPaneUI;
 
+
+import gui.configuration.StorableWindow;
+import gui.configuration.WindowPropertiesManager;
+import gui.configuration.WindowsConfigurationManager;
+import gui.configuration.WindowsRegistry;
 import log.Logger;
 
 /**
@@ -14,8 +18,14 @@ import log.Logger;
  * 1. Метод создания меню перегружен функционалом и трудно читается.
  * Следует разделить его на серию более простых методов (или вообще выделить отдельный класс).
  */
-public class MainApplicationFrame extends JFrame {
+public class MainApplicationFrame extends JFrame implements StorableWindow {
     private final JDesktopPane desktopPane = new JDesktopPane();
+    private final WindowsConfigurationManager windowsConfigurationManager = new WindowsConfigurationManager();
+
+    public JDesktopPane getDesktopPane() {
+        return desktopPane;
+    }
+    public WindowsConfigurationManager getWindowsConfigurationManager() {return windowsConfigurationManager;}
 
     public MainApplicationFrame() {
         int inset = 50;
@@ -26,9 +36,24 @@ public class MainApplicationFrame extends JFrame {
         desktopPane.setUI(null);
         setContentPane(desktopPane);
 
+        windowsConfigurationManager.loadConfiguration();
+
         addWindow(createLogWindow());
         addWindow(createGameWindow());
+
         setJMenuBar(generateMenuBar());
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent e) {
+                exitFromApplication();
+            }
+        });
+        WindowsRegistry.register(this);
+    }
+
+    @Override
+    public String getId() {
+        return "MainApplicationFrame";
     }
 
     protected LogWindow createLogWindow() {
@@ -76,6 +101,7 @@ public class MainApplicationFrame extends JFrame {
                 JOptionPane.QUESTION_MESSAGE
         );
         if (resultExit == JOptionPane.YES_OPTION) {
+            windowsConfigurationManager.saveConfiguration();
             System.exit(0);
         }
     }

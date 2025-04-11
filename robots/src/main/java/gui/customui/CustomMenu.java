@@ -1,4 +1,4 @@
-package gui;
+package gui.customui;
 
 import javax.swing.*;
 import java.awt.*;
