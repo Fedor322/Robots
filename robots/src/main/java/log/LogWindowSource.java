@@ -1,7 +1,12 @@
 package log;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Что починить:
@@ -12,78 +17,106 @@ import java.util.Collections;
  * величиной m_iQueueLength (т.е. реально нужна очередь сообщений 
  * ограниченного размера) 
  */
-public class LogWindowSource
-{
-    private int m_iQueueLength;
-    
-    private ArrayList<LogEntry> m_messages;
-    private final ArrayList<LogChangeListener> m_listeners;
-    private volatile LogChangeListener[] m_activeListeners;
-    
-    public LogWindowSource(int iQueueLength) 
-    {
-        m_iQueueLength = iQueueLength;
-        m_messages = new ArrayList<LogEntry>(iQueueLength);
-        m_listeners = new ArrayList<LogChangeListener>();
+public class LogWindowSource {
+    private int queueCapacity;
+
+    private LogEntry[] messages;
+
+    private int head = 0;
+    private int tail = 0;
+    private int count = 0;
+
+
+    private final List<WeakReference<LogChangeListener>> m_listeners;
+
+    private final ReentrantLock lock = new ReentrantLock();
+
+    public LogWindowSource(int iQueueLength) {
+        queueCapacity = iQueueLength;
+        messages = new LogEntry[iQueueLength];
+        m_listeners = new CopyOnWriteArrayList<>();
     }
-    
-    public void registerListener(LogChangeListener listener)
-    {
-        synchronized(m_listeners)
-        {
-            m_listeners.add(listener);
-            m_activeListeners = null;
-        }
+
+    public void registerListener(LogChangeListener listener) {
+        m_listeners.add(new WeakReference<>(listener));
     }
-    
-    public void unregisterListener(LogChangeListener listener)
-    {
-        synchronized(m_listeners)
-        {
-            m_listeners.remove(listener);
-            m_activeListeners = null;
-        }
-    }
-    
-    public void append(LogLevel logLevel, String strMessage)
-    {
-        LogEntry entry = new LogEntry(logLevel, strMessage);
-        m_messages.add(entry);
-        LogChangeListener [] activeListeners = m_activeListeners;
-        if (activeListeners == null)
-        {
-            synchronized (m_listeners)
-            {
-                if (m_activeListeners == null)
-                {
-                    activeListeners = m_listeners.toArray(new LogChangeListener [0]);
-                    m_activeListeners = activeListeners;
-                }
+
+    public void unregisterListener(LogChangeListener listener) {
+        Iterator<WeakReference<LogChangeListener>> iterator = m_listeners.iterator();
+        while (iterator.hasNext()) {
+            WeakReference<LogChangeListener> weakRef = iterator.next();
+            LogChangeListener logChangeListener = weakRef.get();
+            if (logChangeListener == null || logChangeListener == listener) {
+                iterator.remove();
             }
         }
-        for (LogChangeListener listener : activeListeners)
-        {
-            listener.onLogChanged();
-        }
-    }
-    
-    public int size()
-    {
-        return m_messages.size();
     }
 
-    public Iterable<LogEntry> range(int startFrom, int count)
-    {
-        if (startFrom < 0 || startFrom >= m_messages.size())
-        {
+    public void append(LogLevel logLevel, String strMessage) {
+        LogEntry entry = new LogEntry(logLevel, strMessage);
+        lock.lock();
+        try {
+            messages[tail] = entry;
+            tail = (tail + 1) % queueCapacity;
+            if (count == queueCapacity) {
+                head = (head + 1) % queueCapacity;
+            } else {
+                count++;
+            }
+        } finally {
+            lock.unlock();
+        }
+        Iterator<WeakReference<LogChangeListener>> iterator = m_listeners.iterator();
+        while (iterator.hasNext()) {
+            WeakReference<LogChangeListener> weakRef = iterator.next();
+            LogChangeListener listener = weakRef.get();
+            if (listener != null) {
+                listener.onLogChanged();
+            } else {
+                iterator.remove();
+            }
+        }
+    }
+
+    public int size() {
+        return count;
+    }
+
+    public Iterable<LogEntry> range(int startFrom, int reqCount) {
+        if (startFrom < 0 || reqCount <= 0 || startFrom >= count) {
             return Collections.emptyList();
         }
-        int indexTo = Math.min(startFrom + count, m_messages.size());
-        return m_messages.subList(startFrom, indexTo);
+        List<LogEntry> snapshot = new ArrayList<>(Math.min(reqCount, queueCapacity));
+        lock.lock();
+        try {
+            int actualCount = Math.min(reqCount, count - startFrom);
+            if (actualCount <= 0) {
+                return Collections.emptyList();
+            }
+            int curIndex = (head + startFrom) % queueCapacity;
+            for (int i = 0; i < actualCount; i++) {
+                snapshot.add(messages[curIndex]);
+                curIndex = (curIndex + 1) % queueCapacity;
+
+            }
+        } finally {
+            lock.unlock();
+        }
+        return snapshot;
     }
 
-    public Iterable<LogEntry> all()
-    {
-        return m_messages;
+    public Iterable<LogEntry> all() {
+        List<LogEntry> snapshot = new ArrayList<>(queueCapacity);
+        lock.lock();
+        try {
+            int currInd = head;
+            for (int i = 0; i < count; i++) {
+                snapshot.add(messages[currInd]);
+                currInd = (currInd + 1) % queueCapacity;
+            }
+        } finally {
+            lock.unlock();
+        }
+        return snapshot;
     }
 }
