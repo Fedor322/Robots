@@ -18,7 +18,7 @@ public class LogWindow extends JInternalFrame implements  StorableWindow,LogChan
     private TextArea m_logContent;
 
     public LogWindow(LogWindowSource logSource) {
-        super("Протокол работает", false, true, false, false);
+        super("Протокол работает", true, true, true, true);
         m_logSource = logSource;
         m_logSource.registerListener(this);
         m_logContent = new TextArea("");
