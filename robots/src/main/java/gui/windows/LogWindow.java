@@ -5,6 +5,8 @@ import java.awt.EventQueue;
 import java.awt.TextArea;
 import javax.swing.JInternalFrame;
 import javax.swing.JPanel;
+import javax.swing.event.InternalFrameAdapter;
+import javax.swing.event.InternalFrameEvent;
 
 import gui.configuration.StorableWindow;
 import gui.configuration.WindowsRegistry;
@@ -30,7 +32,14 @@ public class LogWindow extends JInternalFrame implements  StorableWindow,LogChan
         pack();
         updateLogContent();
         WindowsRegistry.register(this);
+        addInternalFrameListener(new InternalFrameAdapter() {
+            @Override
+            public void internalFrameClosing(InternalFrameEvent e) {
+                m_logSource.unregisterListener(LogWindow.this);
+            }
+        });
     }
+
     @Override
     public String getId() {
         return "LogWindow";
