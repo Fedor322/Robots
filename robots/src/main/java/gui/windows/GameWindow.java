@@ -1,6 +1,7 @@
 package gui.windows;
 
 import gui.GameVisualizer;
+import gui.GridController;
 import gui.configuration.StorableWindow;
 import gui.configuration.WindowPropertiesManager;
 import gui.configuration.WindowState;
@@ -14,9 +15,9 @@ import java.awt.BorderLayout;
 
 public class GameWindow extends JInternalFrame implements StorableWindow {
     private final GameVisualizer m_visualizer;
-    public GameWindow() {
+    public GameWindow(GridController gridController) {
         super("Поле", true, true, true, true);
-        m_visualizer = new GameVisualizer();
+        m_visualizer = new GameVisualizer(gridController);
         setUI(new CustomInternalFrameUi(this));
         JPanel panel = new JPanel(new BorderLayout());
         panel.add(m_visualizer, BorderLayout.CENTER);
