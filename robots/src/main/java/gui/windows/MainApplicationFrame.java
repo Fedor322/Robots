@@ -36,7 +36,7 @@ public class MainApplicationFrame extends JFrame implements StorableWindow {
                 screenSize.height - inset * 2);
         desktopPane.setUI(null);
         setContentPane(desktopPane);
-        gridController = new GridController(40, 40);
+        gridController = new GridController(20, 20);
         windowsConfigurationManager.loadConfiguration();
 
         addWindow(createLogWindow());
