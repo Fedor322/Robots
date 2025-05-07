@@ -7,8 +7,8 @@ import java.awt.event.KeyEvent;
 import javax.swing.*;
 
 
+import gui.GridController;
 import gui.configuration.StorableWindow;
-import gui.configuration.WindowPropertiesManager;
 import gui.configuration.WindowsConfigurationManager;
 import gui.configuration.WindowsRegistry;
 import log.Logger;
@@ -21,12 +21,13 @@ import log.Logger;
 public class MainApplicationFrame extends JFrame implements StorableWindow {
     private final JDesktopPane desktopPane = new JDesktopPane();
     private final WindowsConfigurationManager windowsConfigurationManager = new WindowsConfigurationManager();
+    private GridController gridController;
+
 
     public JDesktopPane getDesktopPane() {
         return desktopPane;
     }
     public WindowsConfigurationManager getWindowsConfigurationManager() {return windowsConfigurationManager;}
-
     public MainApplicationFrame() {
         int inset = 50;
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -35,7 +36,7 @@ public class MainApplicationFrame extends JFrame implements StorableWindow {
                 screenSize.height - inset * 2);
         desktopPane.setUI(null);
         setContentPane(desktopPane);
-
+        gridController = new GridController(40, 40);
         windowsConfigurationManager.loadConfiguration();
 
         addWindow(createLogWindow());
@@ -67,7 +68,7 @@ public class MainApplicationFrame extends JFrame implements StorableWindow {
     }
 
     protected GameWindow createGameWindow() {
-        GameWindow gameWindow = new GameWindow();
+        GameWindow gameWindow = new GameWindow(gridController);
         gameWindow.setSize(400, 400);
         return gameWindow;
     }
@@ -82,6 +83,7 @@ public class MainApplicationFrame extends JFrame implements StorableWindow {
         menuBar.add(createExitItem());
         menuBar.add(createLookAndFeel());
         menuBar.add(createTestMenu());
+        menuBar.add(createGridMenu());
         return menuBar;
     }
 
@@ -93,6 +95,14 @@ public class MainApplicationFrame extends JFrame implements StorableWindow {
         return fileMenu;
     }
 
+    private JMenu createGridMenu(){
+        JMenu jMenu = new JMenu("Система");
+        JMenuItem jMenuItem = new JMenuItem("Сохранить");
+        jMenuItem.addActionListener(e -> gridController.saveObstacles());
+        jMenu.add(jMenuItem);
+        return jMenu;
+    }
+
     private void exitFromApplication() {
         int resultExit = JOptionPane.showConfirmDialog(
                 this, "Вы точно хотите выйти?",
@@ -102,6 +112,7 @@ public class MainApplicationFrame extends JFrame implements StorableWindow {
         );
         if (resultExit == JOptionPane.YES_OPTION) {
             windowsConfigurationManager.saveConfiguration();
+            gridController.saveObstacles();
             System.exit(0);
         }
     }
