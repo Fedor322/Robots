@@ -1,5 +1,6 @@
 package log;
 
+
 public final class Logger
 {
     private static final LogWindowSource defaultLogSource;
@@ -26,3 +27,5 @@ public final class Logger
         return defaultLogSource;
     }
 }
+
+

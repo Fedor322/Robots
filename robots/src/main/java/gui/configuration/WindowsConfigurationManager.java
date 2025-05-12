@@ -67,6 +67,7 @@ public class WindowsConfigurationManager {
 
     public void loadConfigurationFrameComponent(Component frameComponent, String id) {
         WindowState windowState = windowPropertiesManager.loadWindowState(id);
+
         frameComponent.setBounds(
                 windowState.getX(),
                 windowState.getY(),

@@ -8,6 +8,8 @@ import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -15,7 +17,9 @@ import javax.swing.JPanel;
 
 public class GameVisualizer extends JPanel {
     private final Timer m_timer = initTimer();
-
+    private final GridController gridController;
+    private List<Point> currentPath = new ArrayList<>();
+    private int currentIndex;
     private static Timer initTimer() {
         Timer timer = new Timer("events generator", true);
         return timer;
@@ -26,13 +30,14 @@ public class GameVisualizer extends JPanel {
     private volatile double m_robotPositionY = 100;
     private volatile double m_robotDirection = 0;
 
-    private volatile int m_targetPositionX = 150;
+    private volatile int m_targetPositionX = 110;
     private volatile int m_targetPositionY = 100;
 
-    private static final double maxVelocity = 0.1;
-    private static final double maxAngularVelocity = 0.001;
+    private static final double maxVelocity = 0.05;
+    private static final double maxAngularVelocity = 0.01;
 
-    public GameVisualizer() {
+    public GameVisualizer(GridController gridController) {
+        this.gridController = gridController;
         m_timer.schedule(new TimerTask() {
             @Override
             public void run() {
@@ -53,6 +58,7 @@ public class GameVisualizer extends JPanel {
             }
         });
         setDoubleBuffered(true);
+        updatePath();
     }
 
     protected void setTargetPosition(Point p) {
@@ -77,21 +83,57 @@ public class GameVisualizer extends JPanel {
         return asNormalizedRadians(Math.atan2(diffY, diffX));
     }
 
+
+
+    private void updatePath() {
+        Point start = gridController.getGridCoordinates(m_robotPositionX,m_robotPositionY);
+        Point target = gridController.getGridCoordinates(m_targetPositionX,m_targetPositionY);
+        currentPath = gridController.findPath(start, target);
+//        for (Point point: currentPath) {
+//            System.out.println("Point");
+//            System.out.println(point);
+//            System.out.println(gridController.gridToNormalCoordinates(point));
+//        }
+        currentIndex = 0;
+    }
+
+
     protected void onModelUpdateEvent() {
-        double distance = distance(m_targetPositionX, m_targetPositionY,
-                m_robotPositionX, m_robotPositionY);
-        if (distance < 0.5) {
+        double distanceToEnd = distance(m_targetPositionX, m_targetPositionY,m_robotPositionX,m_robotPositionY);
+        if (distanceToEnd < 10.0) {
+            currentPath.clear();
             return;
         }
-        double velocity = maxVelocity;
-        double angleToTarget = angleTo(m_robotPositionX, m_robotPositionY, m_targetPositionX, m_targetPositionY);
-        double angularVelocity = 0;
-        if (angleToTarget > m_robotDirection) {
-            angularVelocity = maxAngularVelocity;
+        if (currentPath.isEmpty() || currentIndex >= currentPath.size() ) {
+            updatePath();
+            if (currentPath.isEmpty()) {
+                return;
+            }
         }
-        if (angleToTarget < m_robotDirection) {
+        Point next = gridController.gridToNormalCoordinates(currentPath.get(currentIndex));
+        double distance = distance(next.x, next.y,
+                m_robotPositionX, m_robotPositionY);
+        if (distance < 10) {
+            currentIndex++;
+            if (currentIndex >= currentPath.size()) {
+                return;
+            }
+            next = gridController.gridToNormalCoordinates(currentPath.get(currentIndex));
+        }
+        double velocity = maxVelocity;
+        double angleToTarget = angleTo(m_robotPositionX, m_robotPositionY, next.x, next.y);
+        double angularVelocity = 0;
+        double angleDifference = asNormalizedRadians(angleToTarget - m_robotDirection);
+        if (angleDifference > Math.PI) {
+            angleDifference -= 2 * Math.PI;
+        }
+
+        if (angleDifference > 0.05) {
+            angularVelocity = maxAngularVelocity;
+        } else if (angleDifference < -0.05) {
             angularVelocity = -maxAngularVelocity;
         }
+
 
         moveRobot(velocity, angularVelocity, 10);
     }
@@ -119,8 +161,7 @@ public class GameVisualizer extends JPanel {
         }
         m_robotPositionX = newX;
         m_robotPositionY = newY;
-        double newDirection = asNormalizedRadians(m_robotDirection + angularVelocity * duration);
-        m_robotDirection = newDirection;
+        m_robotDirection = asNormalizedRadians(m_robotDirection + angularVelocity * duration);
     }
 
     private static double asNormalizedRadians(double angle) {
@@ -138,9 +179,29 @@ public class GameVisualizer extends JPanel {
     }
 
     @Override
-    public void paint(Graphics g) {
-        super.paint(g);
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
         Graphics2D g2d = (Graphics2D) g;
+
+        int[][] obstacles = gridController.getObstacles();
+        int rows = obstacles.length;
+        int cols = obstacles[0].length;
+        int cellWidth = gridController.getCellWidth();
+        int cellHeight = gridController.getCellHeight();
+        for (int row = 0; row < rows; row++) {
+            for (int col = 0; col < cols; col++) {
+                int x = col * (cellWidth);
+                int y = row * (cellHeight);
+                if (obstacles[row][col] == 1) {
+                    g2d.setColor(Color.RED);
+                    g2d.fillRect(x, y, cellWidth, cellHeight);
+                } else {
+                    g2d.setColor(Color.WHITE);
+                    g2d.fillRect(x, y, cellWidth, cellHeight);
+                }
+            }
+        }
+
         drawRobot(g2d, round(m_robotPositionX), round(m_robotPositionY), m_robotDirection);
         drawTarget(g2d, m_targetPositionX, m_targetPositionY);
     }
@@ -153,9 +214,8 @@ public class GameVisualizer extends JPanel {
         g.drawOval(centerX - diam1 / 2, centerY - diam2 / 2, diam1, diam2);
     }
 
-    private void drawRobot(Graphics2D g, int x, int y, double direction) {
-        int robotCenterX = round(m_robotPositionX);
-        int robotCenterY = round(m_robotPositionY);
+    private void drawRobot(Graphics2D g, int robotCenterX, int robotCenterY, double direction) {
+
         AffineTransform t = AffineTransform.getRotateInstance(direction, robotCenterX, robotCenterY);
         g.setTransform(t);
         g.setColor(Color.MAGENTA);
@@ -163,9 +223,9 @@ public class GameVisualizer extends JPanel {
         g.setColor(Color.BLACK);
         drawOval(g, robotCenterX, robotCenterY, 30, 10);
         g.setColor(Color.WHITE);
-        fillOval(g, robotCenterX + 10, robotCenterY, 5, 5);
+        fillOval(g, robotCenterX, robotCenterY, 5, 5);
         g.setColor(Color.BLACK);
-        drawOval(g, robotCenterX + 10, robotCenterY, 5, 5);
+        drawOval(g, robotCenterX , robotCenterY, 5, 5);
     }
 
     private void drawTarget(Graphics2D g, int x, int y) {
