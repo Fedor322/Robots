@@ -21,8 +21,10 @@ import java.util.Set;
 
 public class GridController {
 
-    private final double cellWidth = 20.0;
-    private final double cellHeight = 20.0;
+    private static final String PATH_TO_GRID = "matrix.txt";
+
+    private final int cellWidth = 20;
+    private final int cellHeight = 20;
 
     private final int rows;
     private final int cols;
@@ -36,15 +38,13 @@ public class GridController {
         for (int[] row : obstacles) {
             Arrays.fill(row, 0);
         }
-        loadObstacles();
     }
 
     public void loadObstacles() {
-        File file = new File("matrix.txt");
+        File file = new File(PATH_TO_GRID);
         if (!file.exists()) {
             return;
         }
-
         try (BufferedReader bufferedReader = new BufferedReader(new FileReader(file))) {
             String line;
             int row = 0;
@@ -67,13 +67,13 @@ public class GridController {
             }
             Logger.debug("Препятствия загружены");
         } catch (IOException e) {
-            throw new RuntimeException(e);
+           Logger.debug("Препятствия не удалось загрузить");
         }
     }
 
 
     public void saveObstacles() {
-        File file = new File("matrix.txt");
+        File file = new File(PATH_TO_GRID);
         try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(file))) {
             for (int row = 0; row < rows; row++) {
                 for (int col = 0; col < cols; col++) {
@@ -88,6 +88,11 @@ public class GridController {
         } catch (IOException e) {
             System.out.println("Не удалось сохранить препятствия в файл");
         }
+    }
+
+
+    public  void addObstacle(Point point) {
+        obstacles[point.y][point.x] = 1 - obstacles[point.y][point.x];
     }
 
     private List<Point> getPathToGoal(Node node) {
@@ -115,17 +120,16 @@ public class GridController {
             closeSet.add(current.point);
             for (Point neighbour : getNeighbours(current.point)) {
                 if (closeSet.contains(neighbour)) continue;
-                double currG = current.gCost;
+                double currGcost = current.gCost;
                 if (Math.abs(current.point.x - neighbour.x) == 1 && Math.abs(current.point.y - neighbour.y) == 1) {
-                    currG += 14;
-                } else currG += 10;
+                    currGcost += 14;
+                } else currGcost += 10;
                 Node neighbourNode = openMap.get(neighbour);
-
-                if (neighbourNode == null || currG < neighbourNode.gCost) {
+                if (neighbourNode == null || currGcost < neighbourNode.gCost) {
                     if (neighbourNode != null) {
                         queue.remove(neighbourNode);
                     }
-                    Node newNode =  new Node(neighbour, current, currG, heuristicDistance(neighbour, endPoint));
+                    Node newNode =  new Node(neighbour, current, currGcost, heuristicDistance(neighbour, endPoint));
                     queue.add(newNode);
                     openMap.put(neighbour, newNode);
                 }
@@ -135,30 +139,25 @@ public class GridController {
     }
 
     public Point gridToNormalCoordinates(Point point) {
-
-        int normalX = Math.max(0, Math.min(point.x-1,this.cols -1 ));
-        int normalY = Math.max(0, Math.min(point.y-1,this.rows -1 ));
-
+        int normalX = Math.max(0, Math.min(point.x,this.cols -1 ));
+        int normalY = Math.max(0, Math.min(point.y,this.rows -1 ));
         int x = (int) ((normalX) * cellWidth + cellWidth / 2);
         int y = (int) ((normalY) * cellHeight + cellHeight / 2);
-
         return new Point(x, y);
     }
 
     public Point getGridCoordinates(double x, double y) {
         int gridX = (int) (x / cellWidth);
         int gridY = (int) (y / cellHeight);
-
         gridX = Math.max(0, Math.min(gridX,this.cols -1 ));
         gridY = Math.max(0, Math.min(gridY,this.rows -1 ));
-        return new Point(gridX +1 , gridY +1 );
+        return new Point(gridX, gridY);
 
     }
 
     private double heuristicDistance(Point startX, Point endX) {
         int dx = Math.abs(startX.x - endX.x);
         int dy = Math.abs(startX.y - endX.y);
-
         return 10 * Math.abs(dx - dy) + 14 * Math.min(dx, dy);
     }
 
@@ -172,16 +171,15 @@ public class GridController {
             int newCol = point.x + direction[0];
             int newRow = point.y + direction[1];
             if (newRow >= 1 &&
-                    newRow <= rows &&
+                    newRow < rows &&
                     newCol >= 1 &&
-                    newCol <= cols &&
-                    obstacles[newRow-1][newCol-1] == 0
+                    newCol < cols &&
+                    obstacles[newRow][newCol] == 0
             ) {
                 boolean isDiagonal = (direction[0] != 0 && direction[1] != 0);
                 if (isDiagonal) {
-
-                    if (obstacles[point.y-1][newCol-1] == 0 &&
-                            obstacles[newRow-1][point.x-1] == 0) {
+                    if (obstacles[point.y][newCol] == 0 &&
+                            obstacles[newRow][point.x] == 0) {
                         neighbours.add(new Point(newCol, newRow));
                     }
                 } else {
@@ -196,5 +194,13 @@ public class GridController {
     public int[][] getObstacles() {
         return obstacles;
     }
+
+    public int getCellWidth() {
+        return cellWidth;
+    }
+    public int getCellHeight() {
+        return cellHeight;
+    }
+
 
 }

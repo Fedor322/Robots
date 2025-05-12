@@ -30,7 +30,7 @@ public class GameVisualizer extends JPanel {
     private volatile double m_robotPositionY = 100;
     private volatile double m_robotDirection = 0;
 
-    private volatile int m_targetPositionX = 200;
+    private volatile int m_targetPositionX = 110;
     private volatile int m_targetPositionY = 100;
 
     private static final double maxVelocity = 0.05;
@@ -89,9 +89,11 @@ public class GameVisualizer extends JPanel {
         Point start = gridController.getGridCoordinates(m_robotPositionX,m_robotPositionY);
         Point target = gridController.getGridCoordinates(m_targetPositionX,m_targetPositionY);
         currentPath = gridController.findPath(start, target);
-        for (Point point: currentPath) {
-            System.out.println(point);
-        }
+//        for (Point point: currentPath) {
+//            System.out.println("Point");
+//            System.out.println(point);
+//            System.out.println(gridController.gridToNormalCoordinates(point));
+//        }
         currentIndex = 0;
     }
 
@@ -109,11 +111,8 @@ public class GameVisualizer extends JPanel {
             }
         }
         Point next = gridController.gridToNormalCoordinates(currentPath.get(currentIndex));
-        System.out.println(currentPath.get(currentIndex));
-        System.out.println(next);
         double distance = distance(next.x, next.y,
                 m_robotPositionX, m_robotPositionY);
-        System.out.println(distance);
         if (distance < 10) {
             currentIndex++;
             if (currentIndex >= currentPath.size()) {
@@ -123,7 +122,6 @@ public class GameVisualizer extends JPanel {
         }
         double velocity = maxVelocity;
         double angleToTarget = angleTo(m_robotPositionX, m_robotPositionY, next.x, next.y);
-        System.out.println(angleToTarget);
         double angularVelocity = 0;
         double angleDifference = asNormalizedRadians(angleToTarget - m_robotDirection);
         if (angleDifference > Math.PI) {
@@ -163,8 +161,7 @@ public class GameVisualizer extends JPanel {
         }
         m_robotPositionX = newX;
         m_robotPositionY = newY;
-        double newDirection = asNormalizedRadians(m_robotDirection + angularVelocity * duration);
-        m_robotDirection = newDirection;
+        m_robotDirection = asNormalizedRadians(m_robotDirection + angularVelocity * duration);
     }
 
     private static double asNormalizedRadians(double angle) {
@@ -189,13 +186,12 @@ public class GameVisualizer extends JPanel {
         int[][] obstacles = gridController.getObstacles();
         int rows = obstacles.length;
         int cols = obstacles[0].length;
-        int cellWidth = getWidth() / cols;
-        int cellHeight = getHeight() / rows;
-
+        int cellWidth = gridController.getCellWidth();
+        int cellHeight = gridController.getCellHeight();
         for (int row = 0; row < rows; row++) {
             for (int col = 0; col < cols; col++) {
-                int x = col * cellWidth;
-                int y = row * cellHeight;
+                int x = col * (cellWidth);
+                int y = row * (cellHeight);
                 if (obstacles[row][col] == 1) {
                     g2d.setColor(Color.RED);
                     g2d.fillRect(x, y, cellWidth, cellHeight);
@@ -218,9 +214,8 @@ public class GameVisualizer extends JPanel {
         g.drawOval(centerX - diam1 / 2, centerY - diam2 / 2, diam1, diam2);
     }
 
-    private void drawRobot(Graphics2D g, int x, int y, double direction) {
-        int robotCenterX = round(m_robotPositionX);
-        int robotCenterY = round(m_robotPositionY);
+    private void drawRobot(Graphics2D g, int robotCenterX, int robotCenterY, double direction) {
+
         AffineTransform t = AffineTransform.getRotateInstance(direction, robotCenterX, robotCenterY);
         g.setTransform(t);
         g.setColor(Color.MAGENTA);
@@ -228,9 +223,9 @@ public class GameVisualizer extends JPanel {
         g.setColor(Color.BLACK);
         drawOval(g, robotCenterX, robotCenterY, 30, 10);
         g.setColor(Color.WHITE);
-        fillOval(g, robotCenterX + 10, robotCenterY, 5, 5);
+        fillOval(g, robotCenterX, robotCenterY, 5, 5);
         g.setColor(Color.BLACK);
-        drawOval(g, robotCenterX + 10, robotCenterY, 5, 5);
+        drawOval(g, robotCenterX , robotCenterY, 5, 5);
     }
 
     private void drawTarget(Graphics2D g, int x, int y) {
