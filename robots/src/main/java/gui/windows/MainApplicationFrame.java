@@ -8,6 +8,7 @@ import javax.swing.*;
 
 
 import gui.GridController;
+import gui.RobotServer;
 import gui.configuration.StorableWindow;
 import gui.configuration.WindowsConfigurationManager;
 import gui.configuration.WindowsRegistry;
@@ -22,7 +23,7 @@ public class MainApplicationFrame extends JFrame implements StorableWindow {
     private final JDesktopPane desktopPane = new JDesktopPane();
     private final WindowsConfigurationManager windowsConfigurationManager = new WindowsConfigurationManager();
     private GridController gridController;
-
+    private RobotServer robotServer;
 
     public JDesktopPane getDesktopPane() {
         return desktopPane;
@@ -40,9 +41,14 @@ public class MainApplicationFrame extends JFrame implements StorableWindow {
         windowsConfigurationManager.loadConfiguration();
 
         addWindow(createLogWindow());
-        addWindow(createGameWindow());
+        GameWindow gameWindow = createGameWindow();
+
+        addWindow(gameWindow);
         addWindow(createGridObstaclesWindow());
         setJMenuBar(generateMenuBar());
+
+        startRobotServer(gameWindow);
+
         addWindowListener(new java.awt.event.WindowAdapter() {
             @Override
             public void windowClosing(java.awt.event.WindowEvent e) {
@@ -52,6 +58,15 @@ public class MainApplicationFrame extends JFrame implements StorableWindow {
         WindowsRegistry.register(this);
     }
 
+
+
+    private void startRobotServer(GameWindow gameWindow) {
+        robotServer = new RobotServer(9836,gameWindow.getVisualizer());
+        robotServer.start();
+        Logger.debug("Сервер запущен на " + 9836);
+
+
+    }
 
 
     @Override
@@ -113,6 +128,11 @@ public class MainApplicationFrame extends JFrame implements StorableWindow {
                 JOptionPane.QUESTION_MESSAGE
         );
         if (resultExit == JOptionPane.YES_OPTION) {
+
+            if (robotServer != null) {
+                robotServer.stop();
+                Logger.debug("Сервер остановлен");
+            }
             windowsConfigurationManager.saveConfiguration();
             gridController.saveObstacles();
             System.exit(0);

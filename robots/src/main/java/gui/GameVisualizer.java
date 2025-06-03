@@ -61,10 +61,33 @@ public class GameVisualizer extends JPanel {
         updatePath();
     }
 
-    protected void setTargetPosition(Point p) {
+    public void stopRobot() {
+        m_targetPositionX = (int) m_robotPositionX;
+        m_targetPositionY = (int) m_robotPositionY;
+        currentPath.clear();
+    }
+
+
+    public void setTargetPosition(Point p) {
         m_targetPositionX = p.x;
         m_targetPositionY = p.y;
     }
+
+    public  Point getRobotPosition() {
+        return  new Point((int) m_robotPositionX,
+                (int) m_robotPositionY);
+    }
+
+    public double getRobotDirection() {
+        return m_robotDirection;
+    }
+
+    public Point getTargetPosition() {
+        return  new Point(m_targetPositionX, m_targetPositionY);
+    }
+
+
+
 
     protected void onRedrawEvent() {
         EventQueue.invokeLater(this::repaint);
@@ -89,11 +112,6 @@ public class GameVisualizer extends JPanel {
         Point start = gridController.getGridCoordinates(m_robotPositionX,m_robotPositionY);
         Point target = gridController.getGridCoordinates(m_targetPositionX,m_targetPositionY);
         currentPath = gridController.findPath(start, target);
-//        for (Point point: currentPath) {
-//            System.out.println("Point");
-//            System.out.println(point);
-//            System.out.println(gridController.gridToNormalCoordinates(point));
-//        }
         currentIndex = 0;
     }
 
@@ -236,4 +254,7 @@ public class GameVisualizer extends JPanel {
         g.setColor(Color.BLACK);
         drawOval(g, x, y, 5, 5);
     }
+
+
+
 }

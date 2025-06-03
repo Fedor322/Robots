@@ -47,4 +47,8 @@ public class GameWindow extends JInternalFrame implements StorableWindow {
     public String getId() {
         return "GameWindow";
     }
+
+    public GameVisualizer getVisualizer() {
+        return m_visualizer;
+    }
 }
