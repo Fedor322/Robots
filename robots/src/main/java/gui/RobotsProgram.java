@@ -21,6 +21,7 @@ public class RobotsProgram {
         SwingUtilities.invokeLater(() -> {
             MainApplicationFrame frame = new MainApplicationFrame();
             frame.getWindowsConfigurationManager().loadAllConfigurationFrameComponent();
+
             frame.setVisible(true);
         });
 
